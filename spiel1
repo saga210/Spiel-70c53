@@ -1,0 +1,133 @@
+import React, { useEffect, useMemo, useRef, useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { Crown, Copy, LogIn, Play, RotateCcw, Settings2, Trophy, Users, Zap } from "lucide-react";
+
+const QUESTIONS = [
+  {d:"Anfänger",q:"Wie heißt die Hauptstadt von Deutschland?",a:["Berlin","Bonn","Hamburg","München"],c:0},
+  {d:"Anfänger",q:"Wie viele Tage hat eine Woche?",a:["5","6","7","8"],c:2},
+  {d:"Anfänger",q:"Welcher Planet ist der Sonne am nächsten?",a:["Venus","Merkur","Mars","Erde"],c:1},
+  {d:"Anfänger",q:"Wie viele Kontinente gibt es üblicherweise?",a:["5","6","7","8"],c:2},
+  {d:"Anfänger",q:"Welches Tier gilt als größtes Landtier?",a:["Giraffe","Elefant","Nashorn","Nilpferd"],c:1},
+  {d:"Anfänger",q:"Welche Farbe entsteht aus Blau und Gelb?",a:["Lila","Orange","Grün","Rot"],c:2},
+  {d:"Anfänger",q:"Wie viele Minuten hat eine Stunde?",a:["30","45","60","100"],c:2},
+  {d:"Anfänger",q:"Welches Organ pumpt Blut durch den Körper?",a:["Lunge","Leber","Herz","Magen"],c:2},
+  {d:"Anfänger",q:"In welchem Land stehen die Pyramiden von Gizeh?",a:["Mexiko","Ägypten","Indien","Griechenland"],c:1},
+  {d:"Anfänger",q:"Wie viele Beine hat eine Spinne?",a:["6","8","10","12"],c:1},
+  {d:"Anfänger",q:"Welcher Ozean ist der größte?",a:["Atlantik","Indischer Ozean","Pazifik","Arktischer Ozean"],c:2},
+  {d:"Anfänger",q:"Was gefriert bei 0 Grad Celsius?",a:["Öl","Wasser","Salz","Sand"],c:1},
+  {d:"Anfänger",q:"Wie heißt unser natürlicher Satellit?",a:["Sonne","Mond","Mars","Venus"],c:1},
+  {d:"Anfänger",q:"Welche Jahreszeit folgt auf den Frühling?",a:["Herbst","Winter","Sommer","Regenzeit"],c:2},
+  {d:"Anfänger",q:"Welches Gas brauchen Menschen zum Atmen?",a:["Helium","Sauerstoff","Wasserstoff","Neon"],c:1},
+  {d:"Anfänger",q:"Wie viele Stunden hat ein Tag?",a:["12","20","24","48"],c:2},
+  {d:"Anfänger",q:"Welches Instrument hat schwarze und weiße Tasten?",a:["Trompete","Geige","Klavier","Flöte"],c:2},
+  {d:"Fortgeschritten",q:"Wer schrieb das Drama „Faust“?",a:["Goethe","Schiller","Kafka","Brecht"],c:0},
+  {d:"Fortgeschritten",q:"Wie lautet das chemische Symbol für Gold?",a:["Ag","Au","Fe","Go"],c:1},
+  {d:"Fortgeschritten",q:"Welcher Fluss fließt durch Wien?",a:["Rhein","Elbe","Donau","Seine"],c:2},
+  {d:"Fortgeschritten",q:"Wie viele Bundesländer hat Deutschland?",a:["14","15","16","17"],c:2},
+  {d:"Fortgeschritten",q:"In welchem Jahr fiel die Berliner Mauer?",a:["1979","1989","1991","1999"],c:1},
+  {d:"Fortgeschritten",q:"Welche Einheit misst elektrische Spannung?",a:["Ampere","Watt","Volt","Ohm"],c:2},
+  {d:"Fortgeschritten",q:"Welcher Knochen ist der längste im menschlichen Körper?",a:["Oberarmknochen","Schienbein","Oberschenkelknochen","Wirbelsäule"],c:2},
+  {d:"Fortgeschritten",q:"Was ist die Quadratwurzel aus 144?",a:["10","11","12","14"],c:2},
+  {d:"Fortgeschritten",q:"Wer malte die Mona Lisa?",a:["Michelangelo","Leonardo da Vinci","Picasso","Rembrandt"],c:1},
+  {d:"Fortgeschritten",q:"Welche Sprache wird in Brasilien hauptsächlich gesprochen?",a:["Spanisch","Portugiesisch","Französisch","Englisch"],c:1},
+  {d:"Fortgeschritten",q:"Wie heißt die Hauptstadt von Kanada?",a:["Toronto","Vancouver","Ottawa","Montreal"],c:2},
+  {d:"Fortgeschritten",q:"Welcher Planet ist für seine auffälligen Ringe bekannt?",a:["Mars","Jupiter","Saturn","Neptun"],c:2},
+  {d:"Fortgeschritten",q:"Was bedeutet H₂O?",a:["Sauerstoff","Wasser","Salz","Kohlendioxid"],c:1},
+  {d:"Fortgeschritten",q:"Welche Zahl ist eine Primzahl?",a:["21","27","29","39"],c:2},
+  {d:"Fortgeschritten",q:"Auf welchem Kontinent liegt Argentinien?",a:["Afrika","Asien","Südamerika","Europa"],c:2},
+  {d:"Fortgeschritten",q:"Wie heißt die Lehre von den Himmelskörpern?",a:["Geologie","Astronomie","Biologie","Meteorologie"],c:1},
+  {d:"Fortgeschritten",q:"Welches Metall ist bei Raumtemperatur flüssig?",a:["Eisen","Aluminium","Quecksilber","Kupfer"],c:2},
+  {d:"Profi",q:"Welches Element hat die Ordnungszahl 6?",a:["Sauerstoff","Kohlenstoff","Stickstoff","Helium"],c:1},
+  {d:"Profi",q:"Wie heißt die Hauptstadt von Australien?",a:["Sydney","Melbourne","Canberra","Perth"],c:2},
+  {d:"Profi",q:"Wer formulierte die drei klassischen Bewegungsgesetze?",a:["Einstein","Galilei","Newton","Kepler"],c:2},
+  {d:"Profi",q:"Welcher Frieden beendete 1648 den Dreißigjährigen Krieg?",a:["Westfälischer Frieden","Wiener Kongress","Versailler Vertrag","Augsburger Frieden"],c:0},
+  {d:"Profi",q:"Wie viele Chromosomen hat eine menschliche Körperzelle normalerweise?",a:["23","44","46","48"],c:2},
+  {d:"Profi",q:"Welche Stadt liegt an Bosporus und zwei Kontinenten?",a:["Athen","Istanbul","Kairo","Rom"],c:1},
+  {d:"Profi",q:"Was misst die Richterskala klassisch?",a:["Windstärke","Luftdruck","Erdbebenstärke","Lautstärke"],c:2},
+  {d:"Profi",q:"Welches Land besitzt die längste Küstenlinie?",a:["Australien","Russland","Kanada","Indonesien"],c:2},
+  {d:"Profi",q:"Wie heißt die kleinste Einheit digitaler Information?",a:["Byte","Bit","Hertz","Pixel"],c:1},
+  {d:"Profi",q:"Wer komponierte die 9. Sinfonie mit der „Ode an die Freude“?",a:["Mozart","Bach","Beethoven","Wagner"],c:2},
+  {d:"Profi",q:"Welche Blutgruppe gilt bei roten Blutkörperchen als Universalspender?",a:["AB positiv","0 negativ","A positiv","B negativ"],c:1},
+  {d:"Profi",q:"Welcher Kontinent hat die meisten Staaten?",a:["Europa","Afrika","Asien","Südamerika"],c:1},
+  {d:"Profi",q:"Wie heißt der Prozess, bei dem Pflanzen Lichtenergie nutzen?",a:["Osmose","Gärung","Fotosynthese","Transpiration"],c:2},
+  {d:"Profi",q:"Welcher Staat ist vollständig von Südafrika umgeben?",a:["Lesotho","Eswatini","Botswana","Namibia"],c:0},
+  {d:"Profi",q:"Welche Einheit entspricht einem Joule pro Sekunde?",a:["Volt","Watt","Pascal","Newton"],c:1},
+  {d:"Profi",q:"Wie nennt man ein Wort, das vorwärts und rückwärts gleich lautet?",a:["Akronym","Synonym","Palindrom","Homonym"],c:2}
+];
+
+const ANIMALS=["🦊","🐼","🐯","🐸","🐨","🦁","🐰","🐵"];
+const HAIR=["✨","🟤","🟡","🟣","🔵"];
+const CLOTHES=["👕","🧥","🥋","👗","🦺"];
+const ACCESSORIES=["Ohne","🎩","👑","🕶️","🎧","🎀"];
+const uid=()=>Math.random().toString(36).slice(2,10);
+const roomCode=()=>String(Math.floor(100000+Math.random()*900000));
+const shuffle=a=>[...a].sort(()=>Math.random()-.5);
+
+function Avatar({p,size="text-6xl",mood="normal"}){
+ const face=mood==="sad"?"🥺":p.animal;
+ return <motion.div animate={mood==="win"?{rotate:[0,-12,12,-12,12,0],y:[0,-12,0,-12,0]}:mood==="sad"?{y:[0,5,0]}:{y:[0,-2,0]}} transition={{repeat:mood==="win"?Infinity:0,duration:mood==="win"?1.1:.5}} className="relative inline-flex flex-col items-center select-none">
+   <span className="text-2xl -mb-3 z-10">{p.hair}</span><span className={size}>{face}</span><span className="text-3xl -mt-3">{p.clothes}</span>{p.accessory!=="Ohne"&&<span className="absolute -right-3 top-8 text-3xl">{p.accessory}</span>}
+ </motion.div>
+}
+
+export default function App(){
+ const [screen,setScreen]=useState("home"),[name,setName]=useState(""),[code,setCode]=useState("");
+ const [me,setMe]=useState({id:uid(),name:"",animal:"🦊",hair:"✨",clothes:"👕",accessory:"Ohne",score:0});
+ const [room,setRoom]=useState(null),[players,setPlayers]=useState([]),[host,setHost]=useState(false);
+ const [round,setRound]=useState(0),[selected,setSelected]=useState(null),[locked,setLocked]=useState(false),[time,setTime]=useState(15),[answers,setAnswers]=useState({}),[mood,setMood]=useState("normal");
+ const channel=useRef(null),startAt=useRef(0);
+ const question=room?.questions?.[round];
+ const post=(type,data={})=>channel.current?.postMessage({type,data,from:me.id,at:Date.now()});
+ const savePlayers=ps=>{setPlayers(ps);localStorage.setItem(`wr-${room?.code||code}`,JSON.stringify(ps));};
+
+ useEffect(()=>()=>channel.current?.close(),[]);
+ useEffect(()=>{
+   if(screen!=="game"||locked||!question)return;
+   const t=setInterval(()=>setTime(x=>{if(x<=1){clearInterval(t);submit(-1);return 0}return x-1}),1000);return()=>clearInterval(t);
+ },[screen,round,locked,question]);
+
+ function connect(rc,isHost){
+   channel.current?.close(); channel.current=new BroadcastChannel(`wissens-race-${rc}`);
+   channel.current.onmessage=e=>handle(e.data,rc,isHost);
+ }
+ function handle(msg,rc,isHost){
+   const {type,data}=msg;
+   if(type==="join"&&isHost){setPlayers(ps=>{const n=ps.some(x=>x.id===data.id)?ps:[...ps,data];localStorage.setItem(`wr-${rc}`,JSON.stringify(n));post("state",{players:n,room:JSON.parse(localStorage.getItem(`room-${rc}`))});return n})}
+   if(type==="state"){setPlayers(data.players);if(data.room){setRoom(data.room);setScreen(data.room.status==="game"?"game":"lobby")}}
+   if(type==="start"){setRoom(data);setRound(0);setScreen("game");setTime(15);setLocked(false);setAnswers({});startAt.current=Date.now()}
+   if(type==="answer"&&isHost)setAnswers(a=>({...a,[data.id]:data}));
+   if(type==="scores"){setPlayers(data.players);setLocked(true);setMood(data.correctIds.includes(me.id)?"normal":"sad")}
+   if(type==="next"){if(data.done){setPlayers(data.players);setScreen("result")}else{setPlayers(data.players);setRound(data.round);setSelected(null);setLocked(false);setAnswers({});setMood("normal");setTime(15);startAt.current=Date.now()}}
+ }
+ function create(){
+   const rc=roomCode(),p={...me,name:name.trim()||"Spieler 1"};setMe(p);setHost(true);
+   const r={code:rc,status:"lobby",questions:shuffle(QUESTIONS).slice(0,15)};setCode(rc);setRoom(r);setPlayers([p]);localStorage.setItem(`room-${rc}`,JSON.stringify(r));localStorage.setItem(`wr-${rc}`,JSON.stringify([p]));connect(rc,true);setScreen("lobby");
+ }
+ function join(){
+   const rc=code.trim(),p={...me,name:name.trim()||"Gast"};setMe(p);setHost(false);connect(rc,false);
+   const cached=JSON.parse(localStorage.getItem(`room-${rc}`)||"null");if(cached){setRoom(cached);setPlayers(JSON.parse(localStorage.getItem(`wr-${rc}`)||"[]"));setScreen("lobby")}post("join",p);setTimeout(()=>post("join",p),150);
+ }
+ function start(){const r={...room,status:"game"};setRoom(r);localStorage.setItem(`room-${room.code}`,JSON.stringify(r));setScreen("game");setTime(15);startAt.current=Date.now();post("start",r)}
+ function submit(i){if(locked)return;setSelected(i);setLocked(true);const elapsed=Math.min(15000,Date.now()-startAt.current);const payload={id:me.id,index:i,elapsed,correct:i===question.c};setAnswers(a=>({...a,[me.id]:payload}));post("answer",payload);if(i!==question.c)setMood("sad")}
+ function scoreRound(){
+   const correct=Object.values(answers).filter(x=>x.correct).sort((a,b)=>a.elapsed-b.elapsed);const bonus=[1000,700,500];
+   const ps=players.map(p=>{const rank=correct.findIndex(x=>x.id===p.id);return {...p,score:p.score+(rank>=0?(bonus[rank]||250)+Math.max(0,Math.round((15000-correct[rank].elapsed)/50)):0)}});
+   savePlayers(ps);post("scores",{players:ps,correctIds:correct.map(x=>x.id)})
+ }
+ function next(){const done=round>=room.questions.length-1;const data={done,round:round+1,players};post("next",data);if(done)setScreen("result");else{setRound(x=>x+1);setSelected(null);setLocked(false);setAnswers({});setMood("normal");setTime(15);startAt.current=Date.now()}}
+ const ranking=useMemo(()=>[...players].sort((a,b)=>b.score-a.score),[players]);
+ const Btn=({children,onClick,disabled=false,ghost=false})=><button disabled={disabled} onClick={onClick} className={`rounded-2xl px-5 py-3 font-black transition active:scale-95 disabled:opacity-40 ${ghost?"bg-white/10 hover:bg-white/20":"bg-gradient-to-r from-cyan-400 to-violet-500 text-slate-950 shadow-lg shadow-cyan-500/20"}`}>{children}</button>;
+ return <div className="min-h-screen bg-[radial-gradient(circle_at_top,#253266,#090d24_52%)] text-white p-4 md:p-8 font-sans"><div className="max-w-6xl mx-auto">
+  <header className="flex items-center justify-between mb-8"><div><div className="text-cyan-300 text-sm font-black tracking-[.25em]">LIVE QUIZ ARENA</div><h1 className="text-3xl md:text-5xl font-black">Wissens-Race <span className="text-yellow-300">⚡</span></h1></div><div className="hidden sm:flex items-center gap-2 bg-white/10 px-4 py-2 rounded-full"><Users size={18}/> Gemeinsam spielen</div></header>
+  {screen==="home"&&<div className="grid lg:grid-cols-2 gap-6">
+   <section className="bg-white/10 rounded-[2rem] p-6 md:p-8 border border-white/10 shadow-2xl"><h2 className="text-2xl font-black mb-1">Dein Quiz-Tier</h2><p className="text-slate-300 mb-5">Gestalte deine Figur und betrete die Arena.</p><div className="flex justify-center bg-black/20 rounded-3xl p-5 mb-5"><Avatar p={me}/></div>
+   <label className="text-sm font-bold">Spielername</label><input value={name} onChange={e=>setName(e.target.value)} placeholder="Dein Name" className="w-full mt-2 mb-5 bg-slate-950/70 border border-white/15 rounded-2xl px-4 py-3 outline-none focus:border-cyan-300"/>
+   {[['Tiergesicht',ANIMALS,'animal'],['Haare / Effekt',HAIR,'hair'],['Kleidung',CLOTHES,'clothes'],['Accessoire',ACCESSORIES,'accessory']].map(([label,items,key])=><div className="mb-4" key={key}><div className="text-sm font-bold mb-2">{label}</div><div className="flex flex-wrap gap-2">{items.map(x=><button key={x} onClick={()=>setMe({...me,[key]:x})} className={`min-w-12 h-12 px-3 rounded-xl text-2xl ${me[key]===x?'bg-cyan-400 text-slate-950 ring-2 ring-white':'bg-white/10 hover:bg-white/20'}`}>{x}</button>)}</div></div>)}
+   </section><section className="space-y-6"><div className="bg-white/10 rounded-[2rem] p-7 border border-white/10"><Crown className="text-yellow-300 mb-3"/><h2 className="text-2xl font-black">Neuen Raum eröffnen</h2><p className="text-slate-300 my-3">Du leitest das Spiel und startest 15 zufällige Fragen aus dem 50er-Pool.</p><Btn onClick={create}>Raum erstellen</Btn></div><div className="bg-white/10 rounded-[2rem] p-7 border border-white/10"><LogIn className="text-cyan-300 mb-3"/><h2 className="text-2xl font-black">Mit Code beitreten</h2><input value={code} onChange={e=>setCode(e.target.value.replace(/\D/g,'').slice(0,6))} placeholder="6-stelliger Raumcode" className="w-full my-4 text-center tracking-[.3em] text-2xl bg-slate-950/70 rounded-2xl px-4 py-3"/><Btn disabled={code.length!==6} onClick={join}>Beitreten</Btn></div></section>
+  </div>}
+  {screen==="lobby"&&<section className="bg-white/10 rounded-[2rem] p-6 md:p-10 border border-white/10 text-center"><div className="text-slate-300">Raumcode</div><div className="text-5xl md:text-7xl font-black tracking-[.15em] text-cyan-300 my-3">{room?.code}</div><button onClick={()=>navigator.clipboard?.writeText(room.code)} className="inline-flex gap-2 items-center bg-white/10 px-4 py-2 rounded-full"><Copy size={16}/> Code kopieren</button><h2 className="text-2xl font-black mt-9 mb-4">Spieler in der Lobby ({players.length})</h2><div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-8">{players.map(p=><div key={p.id} className="bg-black/20 rounded-2xl p-4"><Avatar p={p} size="text-5xl"/><div className="font-bold mt-2">{p.name}</div></div>)}</div>{host?<Btn onClick={start}><span className="inline-flex items-center gap-2"><Play size={19}/> Spiel starten</span></Btn>:<p className="text-yellow-200 animate-pulse">Der Gastgeber startet gleich…</p>}</section>}
+  {screen==="game"&&question&&<div className="grid lg:grid-cols-[1fr_280px] gap-5"><section><div className="flex justify-between items-center mb-4"><span className="bg-white/10 px-4 py-2 rounded-full font-bold">Frage {round+1}/{room.questions.length} · {question.d}</span><span className={`text-3xl font-black ${time<=5?'text-red-400 animate-pulse':'text-cyan-300'}`}>{time}s</span></div><div className="h-3 bg-white/10 rounded-full overflow-hidden mb-5"><motion.div className="h-full bg-gradient-to-r from-cyan-400 to-violet-500" animate={{width:`${time/15*100}%`}}/></div><div className="bg-white/10 rounded-[2rem] p-6 md:p-10 border border-white/10"><h2 className="text-2xl md:text-4xl font-black text-center min-h-28 flex items-center justify-center">{question.q}</h2><div className="grid md:grid-cols-2 gap-3 mt-6">{question.a.map((x,i)=><button key={x} disabled={locked} onClick={()=>submit(i)} className={`p-5 rounded-2xl text-left font-bold text-lg transition hover:scale-[1.02] disabled:cursor-default ${locked&&i===question.c?'bg-emerald-500 text-slate-950':locked&&selected===i?'bg-red-500':selected===i?'bg-cyan-400 text-slate-950':'bg-white/10 hover:bg-white/20'}`}><span className="opacity-60 mr-3">{String.fromCharCode(65+i)}</span>{x}</button>)}</div>{locked&&<div className="mt-5 flex flex-col sm:flex-row items-center justify-between gap-4 bg-black/20 rounded-2xl p-4"><div className="flex items-center gap-4"><Avatar p={me} size="text-5xl" mood={mood}/><div><div className="font-black">{selected===question.c?'Richtig! 🎉':`Richtig ist: ${question.a[question.c]}`}</div><div className="text-sm text-slate-300">Warte auf die Mitspieler.</div></div></div>{host&&<div className="flex gap-2"><Btn ghost onClick={scoreRound}>Punkte berechnen</Btn><Btn onClick={next}>Weiter</Btn></div>}</div>}</div></section><aside className="bg-white/10 rounded-[2rem] p-5 border border-white/10"><h3 className="font-black flex gap-2"><Trophy className="text-yellow-300"/> Rangliste</h3><div className="space-y-3 mt-5">{ranking.map((p,i)=><div key={p.id} className="flex items-center gap-3 bg-black/20 rounded-xl p-3"><span className="font-black text-xl w-6">{i+1}</span><Avatar p={p} size="text-3xl"/><div className="min-w-0"><div className="font-bold truncate">{p.name}</div><div className="text-cyan-300 text-sm">{p.score} Punkte</div></div></div>)}</div></aside></div>}
+  {screen==="result"&&<section className="text-center bg-white/10 rounded-[2rem] p-8 border border-white/10"><Trophy className="mx-auto text-yellow-300 w-16 h-16"/><h2 className="text-4xl font-black mt-3">Das Rennen ist beendet!</h2><div className="flex justify-center my-8"><Avatar p={ranking[0]||me} mood="win"/></div><div className="text-2xl font-black text-yellow-300 mb-7">{ranking[0]?.name} gewinnt mit {ranking[0]?.score||0} Punkten!</div><div className="max-w-xl mx-auto space-y-3">{ranking.map((p,i)=><div className="flex items-center justify-between bg-black/20 rounded-2xl p-4" key={p.id}><div className="flex items-center gap-3"><span className="text-2xl font-black">#{i+1}</span><Avatar p={p} size="text-4xl" mood={i===0?'win':'sad'}/><span className="font-bold">{p.name}</span></div><b>{p.score}</b></div>)}</div><div className="mt-8"><Btn onClick={()=>location.reload()}><span className="inline-flex gap-2"><RotateCcw/> Neues Spiel</span></Btn></div></section>}
+  <footer className="text-center text-xs text-slate-400 mt-8">Lokaler Multiplayer-Prototyp · Öffne die Seite in mehreren Tabs/Fenstern desselben Browsers und nutze denselben Raumcode.</footer>
+ </div></div>
+}
